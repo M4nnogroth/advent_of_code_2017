@@ -1,0 +1,79 @@
+#######################################
+###                                 ###
+###                                 ###
+###    Day one part two:            ###
+###        min and max in matrix    ###
+###                                 ###
+###                                 ###
+###      No delayed branching pls   ###
+###                                 ###
+#######################################
+
+    .globl main
+
+### Text segment
+    .text
+
+main:
+        la		$a0, test_data_1
+        addi		$a1, $a0, 12				# end of col
+        addi		$a2, $a0, 16				# end of row
+        jal		find_checksum				# jump to find_sum
+        move            $s0, $t1				# store result
+        
+	j               exit
+
+if_max_value:
+	move		$t1, $t0
+	j		check_min
+	
+if_min_value:
+	move		$t2, $t0
+	j		find_checksum_last
+
+find_checksum:
+	li		$t1, 0xFFFFFFFF				# t1 = max
+	li		$t2, 0					# t2 = min
+	
+find_checksum_loop:
+	lw		$t0, 0($a0)
+	addi		$a0, $a0, 4				# i++
+	
+check_max:
+	bgt		$t0, $t1, if_max_value
+	
+check_min:
+	blt		$t0, $2, if_min_value
+		
+find_checksum_last:
+	beq             $a0, $a1, next_row			# i < $t0 (length of row)
+	blt		$a0, $a2, find_checksum_loop
+        jr              $ra					# jump back to main  
+
+next_row:
+	sub		$t5, $t1, $t2				# $t5 = diff
+	add		$s0, $s0, $t5				# $s0 = sum
+	li		$t1, 0					# reset $t1
+	li		$t2, 0xFFFFFFFF				# reset $t2
+	addi		$a0, $a0, 4				# j++
+	j		find_checksum_loop
+
+exit: 
+    nop								# program has finished executing
+
+.data
+test_data_1: # should give 8 + 4 + 6 = 18
+        .word 5
+        .word 1
+        .word 9
+        .word 5
+        
+        .word 7
+        .word 5
+        .word 3
+        .word 6
+        
+        .word 2
+        .word 4
+        .word 6
+        .word 8
